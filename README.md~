@@ -1,6 +1,7 @@
+<<<<<<< HEAD
 # vae_conv
 Convolutional variational autoencoder in PyTorch
-
+=======
 # Basic VAE Example
 
 This is an improved implementation of the paper [Stochastic Gradient VB and the
@@ -11,4 +12,4 @@ It uses ReLUs and the adam optimizer, instead of sigmoids and adagrad. These cha
 pip install -r requirements.txt
 python main.py
 ```
-
+>>>>>>> init
