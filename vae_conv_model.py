@@ -81,13 +81,17 @@ class VAE(nn.Module):
 
     def encode(self, x):
         conv = self.encoder(x);
+        print("encode conv", conv.size())
         h1 = self.fc1(conv.view(-1, 1024))
+        print("encode h1", h1.size())
         return self.fc21(h1), self.fc22(h1)
 
     def decode(self, z):
         h3 = self.relu(self.fc3(z))
         deconv_input = self.fc4(h3)
+        print("deconv_input", deconv_input.size())
         deconv_input = deconv_input.view(-1,1024,1,1)
+        print("deconv_input", deconv_input.size())
         return self.decoder(deconv_input)
 
     def reparametrize(self, mu, logvar):
@@ -100,7 +104,11 @@ class VAE(nn.Module):
         return eps.mul(std).add_(mu)
 
     def forward(self, x):
+        print("x", x.size())
         mu, logvar = self.encode(x)
+        print("mu, logvar", mu.size(), logvar.size())
         z = self.reparametrize(mu, logvar)
+        print("z", z.size())
         decoded = self.decode(z)
+        print("decoded", decoded.size())
         return decoded, mu, logvar

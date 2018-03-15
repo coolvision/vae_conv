@@ -13,7 +13,7 @@ import torch.utils.data
 import torchvision.utils as vutils
 import torch.backends.cudnn as cudnn
 
-import vae_conv_model
+import vae_conv_model_mnist
 
 parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
@@ -40,30 +40,30 @@ if args.cuda:
 kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 
 # folder dataset
-dataset = datasets.ImageFolder(root=args.dataroot,
-                           transform=transforms.Compose([
-                            #    transforms.Scale(opt.imageSize),
-                            #    transforms.CenterCrop(opt.imageSize),
-                               transforms.ToTensor(),
-                            #    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                           ]))
+# dataset = datasets.ImageFolder(root=args.dataroot,
+#                            transform=transforms.Compose([
+#                             #    transforms.Scale(opt.imageSize),
+#                             #    transforms.CenterCrop(opt.imageSize),
+#                                transforms.ToTensor(),
+#                             #    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+#                            ]))
 
-train_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
-                                         shuffle=True, **kwargs)
-test_loader = train_loader
-
-
-# train_loader = torch.utils.data.DataLoader(
-#     datasets.MNIST('../data', train=True, download=True,
-#                    transform=transforms.ToTensor()),
-#     batch_size=args.batch_size, shuffle=True, **kwargs)
-# test_loader = torch.utils.data.DataLoader(
-#     datasets.MNIST('../data', train=False, transform=transforms.ToTensor()),
-#     batch_size=args.batch_size, shuffle=True, **kwargs)
+# train_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
+#                                          shuffle=True, **kwargs)
+# test_loader = train_loader
 
 
+train_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('../data', train=True, download=True,
+                   transform=transforms.ToTensor()),
+    batch_size=args.batch_size, shuffle=True, **kwargs)
+test_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('../data', train=False, transform=transforms.ToTensor()),
+    batch_size=args.batch_size, shuffle=True, **kwargs)
 
-model = vae_conv_model.VAE()
+
+
+model = vae_conv_model_mnist.VAE()
 if args.cuda:
     model.cuda()
 
@@ -98,10 +98,9 @@ def train(epoch):
 
         print("model")
 
-        recon_batch, mu, logvar = model(data)
+        recon_batch, mu, logvar = model.forward(data)
 
         break
-
         #
         # loss = loss_function(recon_batch, data, mu, logvar)
         # loss.backward()
@@ -138,4 +137,5 @@ def train(epoch):
 #     print('====> Test set loss: {:.4f}'.format(test_loss))
 
 # for epoch in range(1, args.epochs + 1):
+    # train(epoch)
 train(1)
