@@ -14,34 +14,31 @@ import torchvision.utils as vutils
 import torch.backends.cudnn as cudnn
 
 nz = 2
-ngf = 64
-ndf = 64
-nc = 3
+ngf = 28
+ndf = 28
+nc = 1
 
 class VAE(nn.Module):
     def __init__(self):
         super(VAE, self).__init__()
 
         self.encoder = nn.Sequential(
-            # input is (nc) x 64 x 64
+            # input is (nc) x 28 x 28
             nn.Conv2d(nc, ndf, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf) x 32 x 32
+            # state size. (ndf) x 14 x 14
             nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
             nn.BatchNorm2d(ndf * 2),
             nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf*2) x 16 x 16
-            nn.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
+            # state size. (ndf*2) x 7 x 7
+            nn.Conv2d(ndf * 2, ndf * 4, 3, 2, 1, bias=False),
             nn.BatchNorm2d(ndf * 4),
             nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf*4) x 8 x 8
+            # state size. (ndf*4) x 4 x 4
             nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
             nn.BatchNorm2d(ndf * 8),
             nn.LeakyReLU(0.2, inplace=True),
-            # state size. (ndf*8) x 4 x 4
-            nn.Conv2d(ndf * 8, 1024, 4, 1, 0, bias=False),
-            nn.LeakyReLU(inplace=True),
-            # nn.Sigmoid()
+            nn.Sigmoid()
         )
 
         self.decoder = nn.Sequential(
@@ -50,7 +47,7 @@ class VAE(nn.Module):
             nn.BatchNorm2d(ngf * 8),
             nn.ReLU(True),
             # state size. (ngf*8) x 4 x 4
-            nn.ConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(ngf * 8, ngf * 4, 3, 2, 1, bias=False),
             nn.BatchNorm2d(ngf * 4),
             nn.ReLU(True),
             # state size. (ngf*4) x 8 x 8
@@ -62,9 +59,9 @@ class VAE(nn.Module):
             nn.BatchNorm2d(ngf),
             nn.ReLU(True),
             # state size. (ngf) x 32 x 32
-            nn.ConvTranspose2d(    ngf,      nc, 4, 2, 1, bias=False),
-            # nn.Tanh()
-            nn.Sigmoid()
+            # nn.ConvTranspose2d(    ngf,      nc, 4, 2, 1, bias=False),
+            nn.Tanh()
+            # nn.Sigmoid()
             # state size. (nc) x 64 x 64
         )
 
@@ -93,14 +90,16 @@ class VAE(nn.Module):
     def reparametrize(self, mu, logvar):
         std = logvar.mul(0.5).exp_()
         # if args.cuda:
-        eps = torch.cuda.FloatTensor(std.size()).normal_()
+        #     eps = torch.cuda.FloatTensor(std.size()).normal_()
         # else:
-        #     eps = torch.FloatTensor(std.size()).normal_()
+        eps = torch.FloatTensor(std.size()).normal_()
         eps = Variable(eps)
         return eps.mul(std).add_(mu)
 
     def forward(self, x):
+        print("x", x.size())
         mu, logvar = self.encode(x)
         z = self.reparametrize(mu, logvar)
         decoded = self.decode(z)
+        print(decoded.size())
         return decoded, mu, logvar
