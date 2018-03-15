@@ -14,8 +14,8 @@ import torchvision.utils as vutils
 import torch.backends.cudnn as cudnn
 
 nz = 2
-ngf = 28
-ndf = 28
+ngf = 64
+ndf = 64
 nc = 1
 
 class VAE(nn.Module):
@@ -55,9 +55,9 @@ class VAE(nn.Module):
             nn.BatchNorm2d(ngf * 2),
             nn.ReLU(True),
             # state size. (ngf*2) x 16 x 16
-            nn.ConvTranspose2d(ngf * 2,     ngf, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf),
-            nn.ReLU(True),
+            nn.ConvTranspose2d(ngf * 2,     nc, 4, 2, 1, bias=False),
+            # nn.BatchNorm2d(ngf),
+            # nn.ReLU(True),
             # state size. (ngf) x 32 x 32
             # nn.ConvTranspose2d(    ngf,      nc, 4, 2, 1, bias=False),
             nn.Tanh()
@@ -78,6 +78,7 @@ class VAE(nn.Module):
 
     def encode(self, x):
         conv = self.encoder(x);
+        print("encode", conv.size())
         h1 = self.fc1(conv.view(-1, 1024))
         return self.fc21(h1), self.fc22(h1)
 
@@ -85,6 +86,7 @@ class VAE(nn.Module):
         h3 = self.relu(self.fc3(z))
         deconv_input = self.fc4(h3)
         deconv_input = deconv_input.view(-1,1024,1,1)
+        print("deconv_input", deconv_input.size())
         return self.decoder(deconv_input)
 
     def reparametrize(self, mu, logvar):
@@ -99,7 +101,9 @@ class VAE(nn.Module):
     def forward(self, x):
         print("x", x.size())
         mu, logvar = self.encode(x)
+        print("mu, logvar", mu.size(), logvar.size())
         z = self.reparametrize(mu, logvar)
+        print("z", z.size())
         decoded = self.decode(z)
         print(decoded.size())
         return decoded, mu, logvar
