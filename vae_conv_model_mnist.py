@@ -35,8 +35,8 @@ class VAE(nn.Module):
             nn.BatchNorm2d(ndf * 4),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*4) x 4 x 4
-            nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 8),
+            nn.Conv2d(ndf * 4, 1024, 4, 1, 0, bias=False),
+            # nn.BatchNorm2d(ndf * 8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Sigmoid()
         )
@@ -78,13 +78,15 @@ class VAE(nn.Module):
 
     def encode(self, x):
         conv = self.encoder(x);
-        print("encode", conv.size())
+        print("encode conv", conv.size())
         h1 = self.fc1(conv.view(-1, 1024))
+        print("encode h1", h1.size())
         return self.fc21(h1), self.fc22(h1)
 
     def decode(self, z):
         h3 = self.relu(self.fc3(z))
         deconv_input = self.fc4(h3)
+        print("deconv_input", deconv_input.size())
         deconv_input = deconv_input.view(-1,1024,1,1)
         print("deconv_input", deconv_input.size())
         return self.decoder(deconv_input)
@@ -92,9 +94,9 @@ class VAE(nn.Module):
     def reparametrize(self, mu, logvar):
         std = logvar.mul(0.5).exp_()
         # if args.cuda:
-        #     eps = torch.cuda.FloatTensor(std.size()).normal_()
+        eps = torch.cuda.FloatTensor(std.size()).normal_()
         # else:
-        eps = torch.FloatTensor(std.size()).normal_()
+        #     eps = torch.FloatTensor(std.size()).normal_()
         eps = Variable(eps)
         return eps.mul(std).add_(mu)
 
@@ -105,5 +107,5 @@ class VAE(nn.Module):
         z = self.reparametrize(mu, logvar)
         print("z", z.size())
         decoded = self.decode(z)
-        print(decoded.size())
+        print("decoded", decoded.size())
         return decoded, mu, logvar
