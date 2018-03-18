@@ -41,7 +41,7 @@ class VAE(nn.Module):
             # state size. (ndf*8) x 4 x 4
             nn.Conv2d(ndf * 8, 1024, 4, 1, 0, bias=False),
             nn.LeakyReLU(inplace=True),
-            # nn.Sigmoid()
+            nn.Sigmoid()
         )
 
         self.decoder = nn.Sequential(
