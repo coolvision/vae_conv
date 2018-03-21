@@ -21,7 +21,7 @@ parser.add_argument('--batch-size', type=int, default=64, metavar='N',
 parser.add_argument('--dataroot', help='path to dataset')
 parser.add_argument('--epochs', type=int, default=10, metavar='N',
                     help='number of epochs to train (default: 2)')
-parser.add_argument('--no-cuda', action='store_true', default=True,
+parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='enables CUDA training')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
@@ -36,6 +36,7 @@ torch.manual_seed(args.seed)
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
+print("cuda", args.cuda, args.no_cuda, torch.cuda.is_available())
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 
@@ -61,6 +62,7 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=args.batch_size, shuffle=True, **kwargs)
 
 model = vae_conv_model_mnist.VAE()
+model.have_cuda = args.cuda
 if args.cuda:
     model.cuda()
 
@@ -80,9 +82,9 @@ def loss_function(recon_x, x, mu, logvar):
     KLD_element = mu.pow(2).add_(logvar.exp()).mul_(-1).add_(1).add_(logvar)
     KLD = torch.sum(KLD_element).mul_(-0.5)
 
-    return BCE + 3 * KLD
-
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    return BCE + KLD
+    # return BCE + 3 * KLD
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
 # print("model")
 
@@ -137,6 +139,6 @@ def train(epoch):
 #     test_loss /= len(test_loader.dataset)
 #     print('====> Test set loss: {:.4f}'.format(test_loss))
 
-# for epoch in range(1, args.epochs + 1):
-#     train(epoch)
-train(1)
+for epoch in range(1, args.epochs + 1):
+    train(epoch)
+# train(1)
