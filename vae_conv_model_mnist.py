@@ -13,7 +13,7 @@ import torch.utils.data
 import torchvision.utils as vutils
 import torch.backends.cudnn as cudnn
 
-nz = 2
+nz = 10
 ngf = 64
 ndf = 64
 nc = 1

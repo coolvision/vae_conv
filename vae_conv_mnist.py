@@ -13,6 +13,9 @@ import torch.utils.data
 import torchvision.utils as vutils
 import torch.backends.cudnn as cudnn
 
+import datetime
+import os
+
 import vae_conv_model_mnist
 
 parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -53,13 +56,21 @@ kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 #                                          shuffle=True, **kwargs)
 # test_loader = train_loader
 
+# train_loader = torch.utils.data.DataLoader(
+#     datasets.MNIST('../data', train=True, download=True,
+#                    transform=transforms.ToTensor()),
+#     batch_size=args.batch_size, shuffle=True, **kwargs)
+# test_loader = torch.utils.data.DataLoader(
+#     datasets.MNIST('../data', train=False, transform=transforms.ToTensor()),
+#     batch_size=args.batch_size, shuffle=True, **kwargs)
 train_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=True, download=True,
+    datasets.FashionMNIST('../data', train=True, download=True,
                    transform=transforms.ToTensor()),
     batch_size=args.batch_size, shuffle=True, **kwargs)
 test_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=False, transform=transforms.ToTensor()),
+    datasets.FashionMNIST('../data', train=False, transform=transforms.ToTensor()),
     batch_size=args.batch_size, shuffle=True, **kwargs)
+
 
 model = vae_conv_model_mnist.VAE()
 model.have_cuda = args.cuda
@@ -84,9 +95,17 @@ def loss_function(recon_x, x, mu, logvar):
 
     return BCE + KLD
     # return BCE + 3 * KLD
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+optimizer = optim.Adam(model.parameters(), lr=1e-5)
 
 # print("model")
+
+outf = args.outf + "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+if not os.path.exists(outf):
+    os.makedirs(outf)
+outf_samples = outf + "/samples";
+os.makedirs(outf_samples)
+outf_real = outf + "/real";
+os.makedirs(outf_real)
 
 def train(epoch):
     model.train()
@@ -110,21 +129,30 @@ def train(epoch):
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader),
                 loss.data[0] / len(data)))
-
-            print(data.data.size(), recon_batch.data.size())
-
-            vutils.save_image(recon_batch.data.view(data.data.size()),
-                    '%s/samples_%03d_%03d.png' % (args.outf, epoch, batch_idx),
-                    normalize=True)
-            vutils.save_image(data.data.view(data.data.size()),
-                    '%s/real_%03d_%03d.png' % (args.outf, epoch, batch_idx),
-                    normalize=True)
-
+        #
+        #     print(data.data.size(), recon_batch.data.size())
+        #
+        #     vutils.save_image(recon_batch.data.view(data.data.size()),
+        #             '%s/samples_%03d_%03d.png' % (args.outf, epoch, batch_idx),
+        #             normalize=True)
+        #     vutils.save_image(data.data.view(data.data.size()),
+        #             '%s/real_%03d_%03d.png' % (args.outf, epoch, batch_idx),
+        #             normalize=True)
 
             # torch.save(model.state_dict(), '%s/vae_epoch_%d_%d.pth' % (args.outf, epoch, batch_idx))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
           epoch, train_loss / len(train_loader.dataset)))
+
+    if epoch % 10 == 0:
+        torch.save(model.state_dict(), '%s/vae_epoch_%d_%d.pth' % (outf, epoch, batch_idx))
+
+    vutils.save_image(recon_batch.data.view(data.data.size()),
+            '%s/%03d_%03d.png' % (outf_samples, epoch, batch_idx),
+            normalize=True)
+    vutils.save_image(data.data.view(data.data.size()),
+            '%s/%03d_%03d.png' % (outf_real, epoch, batch_idx),
+            normalize=True)
 
 # def test(epoch):
 #     model.eval()
