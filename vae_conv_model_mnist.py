@@ -13,16 +13,17 @@ import torch.utils.data
 import torchvision.utils as vutils
 import torch.backends.cudnn as cudnn
 
-nz = 2
+
 ngf = 64
 ndf = 64
 nc = 1
 
 class VAE(nn.Module):
-    def __init__(self):
+    def __init__(self, nz):
         super(VAE, self).__init__()
 
         self.have_cuda = False
+        self.nz = nz
 
         self.encoder = nn.Sequential(
             # input is (nc) x 28 x 28
@@ -40,7 +41,7 @@ class VAE(nn.Module):
             nn.Conv2d(ndf * 4, 1024, 4, 1, 0, bias=False),
             # nn.BatchNorm2d(1024),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Sigmoid()
+            # nn.Sigmoid()
         )
 
         self.decoder = nn.Sequential(
