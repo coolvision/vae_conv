@@ -31,23 +31,32 @@ if args.cuda:
 
 print("cuda", args.cuda, args.no_cuda, torch.cuda.is_available())
 
-model = vae_conv_model_mnist.VAE(20)
+params = 20
+
+model = vae_conv_model_mnist.VAE(params)
 model.have_cuda = args.cuda
 if args.cuda:
     model.cuda()
 
 model.load_state_dict(torch.load(args.model))
 
+np.set_printoptions(threshold=500000,linewidth=1000)
 print(model)
 
-side = 20
-z_input = np.full((side*side,20), 0)
+side_x = 40
+side_y = 20
+z_input = np.full((side_x*side_y,params), 0.0)
 print(z_input.shape)
 
-for i in range(side):
-    for j in range(side):
-        z_input[i*side+j][0] = (i-side/2) * 0.1;
-        z_input[i*side+j][1] = (j-side/2) * 0.1;
+for i in range(side_y):
+    for j in range(side_x):
+        z_input[i*side_x+j][i] = (j-side_x/2.0) * 0.1
+        # z_input[i*side+j][1] = (j-side/2.0) * 0.1
+
+# for i in range(side):
+#     for j in range(side):
+#         z_input[i*side+j][0] = (i-side/2.0) * 0.1
+#         z_input[i*side+j][1] = (j-side/2.0) * 0.1
 
 print(z_input)
 
@@ -56,4 +65,4 @@ z_batch = Variable(z_batch)
 vis_batch = model.decode(z_batch)
 
 outf = args.outf
-save_image(vis_batch.data.cpu(), outf + '/test.png', nrow=side)
+save_image(vis_batch.data.cpu(), outf + '/test.png', nrow=side_x)
