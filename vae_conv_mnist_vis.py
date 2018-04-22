@@ -60,7 +60,10 @@ for i in range(side_y):
 
 print(z_input)
 
-z_batch = torch.cuda.FloatTensor(z_input)
+if args.cuda:
+    z_batch = torch.cuda.FloatTensor(z_input)
+else:
+    z_batch = torch.FloatTensor(z_input)
 z_batch = Variable(z_batch)
 vis_batch = model.decode(z_batch)
 
