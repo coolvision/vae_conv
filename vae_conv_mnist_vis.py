@@ -8,6 +8,8 @@ from torchvision import datasets, transforms
 from torchvision.utils import save_image
 from torch.nn import functional as F
 import numpy as np
+import collections
+from collections import OrderedDict
 
 import datetime
 import os
@@ -38,15 +40,23 @@ model.have_cuda = args.cuda
 if args.cuda:
     model.cuda()
 
-model.load_state_dict(torch.load(args.model))
+if args.cuda:
+    model.load_state_dict(torch.load(args.model))
+else:
+    model.load_state_dict(torch.load(args.model, map_location={'cuda:0': 'cpu'}))
 
 np.set_printoptions(threshold=500000,linewidth=1000)
 print(model)
 
+# Summarize Model
+from pytorch_summary import Summary
+s = Summary(model.encoder, input_size=(1, 1, 28, 28))
+s = Summary(model.decoder, input_size=(1, 1024, 1, 1))
+
 side_x = 40
 side_y = 20
 z_input = np.full((side_x*side_y,params), 0.0)
-print(z_input.shape)
+# print(z_input.shape)
 
 for i in range(side_y):
     for j in range(side_x):
@@ -58,7 +68,7 @@ for i in range(side_y):
 #         z_input[i*side+j][0] = (i-side/2.0) * 0.1
 #         z_input[i*side+j][1] = (j-side/2.0) * 0.1
 
-print(z_input)
+# print(z_input)
 
 if args.cuda:
     z_batch = torch.cuda.FloatTensor(z_input)

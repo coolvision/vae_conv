@@ -51,7 +51,14 @@ model.have_cuda = args.cuda
 if args.cuda:
     model.cuda()
 
-print(model)
+# print(model)
+
+# Summarize Model
+from pytorch_summary import Summary
+s = Summary(model.encoder, input_size=(1, 1, 28, 28))
+s = Summary(model.decoder, input_size=(1, 1024, 1, 1))
+
+
 
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
@@ -119,6 +126,6 @@ def test(epoch):
     test_loss /= len(test_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
 
-for epoch in range(1, args.epochs + 1):
-    train(epoch)
-    test(epoch)
+# for epoch in range(1, args.epochs + 1):
+#     train(epoch)
+#     test(epoch)
